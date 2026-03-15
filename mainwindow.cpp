@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     canvas = new Canvas(800,600,this);
+    canvas->setChunkSize(17,17);
 
     setCentralWidget(canvas);
 
@@ -77,5 +78,6 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event){
     }
 }
 void MainWindow::mouseReleaseEvent(QMouseEvent* event){
-
+    canvas->saveDiferencies();
+    canvas->doCheckpoint();
 }

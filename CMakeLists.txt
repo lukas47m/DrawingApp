@@ -25,6 +25,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         canvas.h canvas.cpp
         resources/brushes/brush1.png
         brush.h brush.cpp
+        CircularBuffer.hpp
 
 
     )
