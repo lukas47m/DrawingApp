@@ -13,7 +13,7 @@
 
 void MainWindow::initBrushes(){
     brushes.resize(2);
-    brushes[1].loadTexture("/Users/lukasmlkvik/Projects/QT/DrawingApp/resources/brushes/brush1.png");
+    brushes[1].loadTexture(":/resources/brushes/brush1.png");
 
 }
 

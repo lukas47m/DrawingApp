@@ -26,6 +26,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         resources/brushes/brush1.png
         brush.h brush.cpp
         CircularBuffer.hpp
+        resources.qrc
 
 
     )
