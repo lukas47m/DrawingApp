@@ -39,6 +39,8 @@ public:
 
     void saveDiferencies();
 
+    void saveImage(const QString& path);
+
 protected:
     void paintEvent(QPaintEvent *) override;
 

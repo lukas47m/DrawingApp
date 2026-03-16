@@ -9,7 +9,9 @@
 #include <QKeyEvent>
 #include <QHBoxLayout>
 #include <QListWidget>
-
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QFileDialog>
 
 void MainWindow::initBrushes(){
     brushes.resize(3);
@@ -28,7 +30,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     // LEFT PANEL
     QDockWidget *dock = new QDockWidget("Settings", this);
-    brushList = new QListWidget(dock);
+
+    QWidget *panel = new QWidget();
+    QVBoxLayout *layout = new QVBoxLayout(panel);
+
+    brushList = new QListWidget(panel);
 
     brushList->setViewMode(QListView::IconMode);
     brushList->setIconSize(QSize(50,50));
@@ -44,9 +50,33 @@ MainWindow::MainWindow(QWidget *parent)
         brushList->addItem(item);
     }
 
-    dock->setWidget(brushList);
+    QPushButton *saveButton = new QPushButton("Save Image");
+
+    layout->addWidget(brushList);
+    layout->addWidget(saveButton);
+
+
+
+    dock->setWidget(panel);
+
+    connect(saveButton, &QPushButton::clicked, this, &MainWindow::saveImage);
 
     addDockWidget(Qt::LeftDockWidgetArea, dock);
+}
+
+void MainWindow::saveImage()
+{
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        "Save Image",
+        "",
+        "PNG Image (*.png);;JPEG Image (*.jpg)"
+        );
+
+    if(fileName.isEmpty())
+        return;
+
+    canvas->saveImage(fileName);
 }
 
 MainWindow::~MainWindow() = default;

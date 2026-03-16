@@ -27,5 +27,7 @@ private:
     void initBrushes();
 
     QPoint prev;
+private slots:
+    void saveImage();
 };
 #endif // MAINWINDOW_H

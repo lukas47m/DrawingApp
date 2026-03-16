@@ -230,3 +230,7 @@ std::vector<uchar> Canvas::unZip(DiffData* diffData){
 
     return data;
 }
+
+void Canvas::saveImage(const QString& path){
+    image.save(path);
+}
