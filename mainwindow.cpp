@@ -12,8 +12,9 @@
 
 
 void MainWindow::initBrushes(){
-    brushes.resize(2);
+    brushes.resize(3);
     brushes[1].loadTexture(":/resources/brushes/brush1.png");
+    brushes[2].loadTexture(":/resources/brushes/brush2.png");
 
 }
 

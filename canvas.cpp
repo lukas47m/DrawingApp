@@ -51,6 +51,7 @@ void Canvas::doCheckpoint(){
 }
 
 void Canvas::saveDiferencies(){
+    std::vector<uchar> data_raw;
     DiffData* data = new DiffData();
     data->chunk_w = ch_w;
     data->chunk_h = ch_h;
@@ -59,7 +60,7 @@ void Canvas::saveDiferencies(){
     for(int i = 0; i < changedChunks.size(); ++i) {
         count += changedChunks[i].count(true);
     }
-    data->data.resize(count * 4 * ch_w * ch_h);
+    data_raw.resize(count * 4 * ch_w * ch_h);
     data->chunks_ID.resize(count);
     int index = 0;
     for(int i = 0; i < changedChunks.size(); ++i) {
@@ -81,13 +82,14 @@ void Canvas::saveDiferencies(){
                     int end   = area.right() * 4 + 3;
 
                     for(int x = start; x <= end; ++x) {
-                        data->data[dataIndex++] = line1[x] ^ line2[x];
+                        data_raw[dataIndex++] = line1[x] ^ line2[x];
                     }
                 }
                 ++index;
             }
         }
     }
+    zip(data, data_raw);
 
     addCheckpoint(data);
 }
@@ -120,6 +122,7 @@ void Canvas::addCheckpoint(DiffData* data) {
 void Canvas::applyChanges(DiffData* data) {
 
 
+    std::vector<uchar> data_raw = unZip(data);
     size_t image_h = image.height();
     size_t ch_h_count = image_h / data->chunk_h;
 
@@ -144,7 +147,7 @@ void Canvas::applyChanges(DiffData* data) {
             int end   = area.right() * 4 + 3;
 
             for(int x = start;  x<= end; ++x) {
-                line[x] ^= data->data[dataIndex++];
+                line[x] ^= data_raw[dataIndex++];
             }
         }
 
@@ -213,4 +216,17 @@ void Canvas::activateChunks(const QPoint& from, const QPoint& to){
             changedChunks[i][j] = true;
         }
     }
+}
+
+void Canvas::zip(DiffData* diffData, const std::vector<uchar>& data){
+
+    diffData->hoff1.zip(data);
+    qDebug() << "zip" << data.size() << diffData->hoff1.size() << ((1.0 *data.size()) /diffData->hoff1.size());
+}
+std::vector<uchar> Canvas::unZip(DiffData* diffData){
+    std::vector<uchar> data;
+
+    data = diffData->hoff1.unzip();
+
+    return data;
 }

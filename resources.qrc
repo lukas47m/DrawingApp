@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>resources/brushes/brush1.png</file>
+        <file>resources/brushes/brush2.png</file>
     </qresource>
 </RCC>

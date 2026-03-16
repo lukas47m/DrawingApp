@@ -8,11 +8,14 @@
 #include <QBitArray>
 #include "brush.h"
 #include "CircularBuffer.hpp"
+#include "compression.h"
+
 
 class DiffData{
 public:
     std::vector<int> chunks_ID;
-    std::vector<uchar> data;
+    Huffman<uchar> hoff1;
+    //Huffman<uint32_t> hoff4;
     int chunk_w, chunk_h;
 };
 
@@ -54,6 +57,9 @@ private:
     void addCheckpoint(DiffData* data);
     void applyChanges(DiffData* data);
     void activateChunks(const QPoint& from, const QPoint& to);
+
+    void zip(DiffData* diffData, const std::vector<uchar>& data);
+    std::vector<uchar> unZip(DiffData* diffData);
 };
 
 #endif // CANVAS_H
