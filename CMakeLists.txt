@@ -29,6 +29,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         resources.qrc
         compression.h compression.cpp
         resources/brushes/brush2.png
+        dataprocess.h dataprocess.cpp
 
 
     )

@@ -1,44 +1,114 @@
 #pragma once
 
 #include <vector>
-#include <vector>
 #include <qtypes.h>
 #include <unordered_map>
 
-class Compression
+template<class T>
+class DataView{
+public:
+    template<class U>
+    DataView(U* pointer,size_t size) :pointer(reinterpret_cast<T*>(pointer)), size_(size)  {}
+
+    DataView(const DataView<std::remove_const_t<T>>& other)
+        : pointer(&other[0]), size_(other.size()) {}
+
+    class Iterator {
+    public:
+        T* pointer;
+        Iterator(T* pointer) : pointer(pointer) {}
+        T& operator*() {
+            return *pointer;
+        }
+        const T& operator*() const {
+            return *pointer;
+        }
+        Iterator& operator++() {
+            pointer++;
+            return *this;
+        }
+        Iterator& operator--() {
+            pointer--;
+            return *this;
+        }
+        bool operator==(const Iterator& other) const {
+            return pointer == other.pointer;
+        }
+        bool operator!=(const Iterator& other) const {
+            return pointer != other.pointer;
+        }
+    };
+    const Iterator begin() const {
+        return Iterator(pointer);
+    }
+    const Iterator end() const {
+        return Iterator(pointer + size_);
+    }
+
+    Iterator begin() {
+        return Iterator(pointer);
+    }
+    Iterator end() {
+        return Iterator(pointer + size_);
+    }
+
+    T& operator[](size_t i) { return pointer[i]; }
+    const T& operator[](size_t i) const{ return pointer[i]; }
+
+    size_t size() const { return size_; }
+
+private:
+    T* pointer;
+    size_t size_;
+};
+
+
+class DataPipeLine
+{
+public:
+    virtual ~DataPipeLine() = default;
+
+    virtual std::vector<uchar> forward(const std::vector<uchar>& data, int chunk_w, int chunk_h) = 0;
+    virtual std::vector<uchar> back(const std::vector<uchar>& data, int chunk_w, int chunk_h) = 0;
+};
+
+class DataGroupechanels : public DataPipeLine
+{
+public:
+
+    virtual std::vector<uchar> forward(const std::vector<uchar>& data, int chunk_w, int chunk_h) override;
+    virtual std::vector<uchar> back(const std::vector<uchar>& data, int chunk_w, int chunk_h) override;
+};
+
+
+class Compression :  public DataPipeLine
 {
 public:
     Compression() = default;
     virtual ~Compression() = default;
 
-    virtual size_t size() = 0;
+    virtual std::vector<uchar> zip(const  std::vector<uchar>&) = 0;
+    virtual std::vector<uchar> unzip(const std::vector<uchar>&) = 0;
 
-    virtual void zip(const  std::vector<uchar>&) = 0;
-    virtual std::vector<uchar> unzip() = 0;
+    virtual std::vector<uchar> forward(const std::vector<uchar>& data, int chunk_w, int chunk_h) override {
+        return zip(data);
+    }
+    virtual std::vector<uchar> back(const std::vector<uchar>& data, int chunk_w, int chunk_h) override {
+        return unzip(data);
+    }
 };
 
 template <class T>
 class Huffman : public Compression {
 public:
 
-    virtual size_t size() override;
-
-    virtual void zip(const  std::vector<uchar>&) override;
-    virtual std::vector<uchar> unzip() override;
+    virtual std::vector<uchar> zip(const  std::vector<uchar>&) override;
+    virtual std::vector<uchar> unzip(const  std::vector<uchar>&) override;
 private:
     struct FreqData{
         T data;
         uint32_t freq;
     };
-
-    union Pom{
-        T t;
-        uchar d[sizeof(T)];
-    };
-
-
-    std::vector<uchar> data_;
-    std::vector<FreqData> freqTable;
 
     struct Node {
         T data;
@@ -58,26 +128,44 @@ private:
         }
     };
 
-    Node* buildTree(const std::vector<FreqData>& freq);
+    Node* buildTree(const DataView<const FreqData>& freq);
 
     void buildCodes(Node* node,
                     std::vector<bool>& path,
                     std::unordered_map<T, std::vector<bool>>& table);
 
     void compress(
-        const std::vector<uchar>& input,
+        const DataView<const T>& input,
         const std::unordered_map<T, std::vector<bool>>& table,
-        std::vector<uchar>& out
+        DataView<uchar>& out
         );
 
     void decompress(
-        const std::vector<uint8_t>& compressed,
+        const DataView<const uint8_t>& compressed,
         Node* root,
-        std::vector<uchar>& out
+        DataView<T>& out
         );
 
     void deleteNodes(Node* node);
 
     size_t calculateDataSize(Node* node, size_t layer = 0);
 };
+
+
+template <class T>
+class Sequence : public Compression {
+public:
+
+    virtual std::vector<uchar> zip(const  std::vector<uchar>&) override;
+    virtual std::vector<uchar> unzip(const  std::vector<uchar>&) override;
+
+private:
+    class SequenceCount{
+    public:
+        uchar count;
+        T data;
+    };
+
+};
+
 

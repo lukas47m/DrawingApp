@@ -9,14 +9,38 @@
 #include "brush.h"
 #include "CircularBuffer.hpp"
 #include "compression.h"
+#include "dataprocess.h"
 
 
 class DiffData{
 public:
     std::vector<int> chunks_ID;
-    Huffman<uchar> hoff1;
-    //Huffman<uint32_t> hoff4;
+    std::vector<DataPipeLine*> pipeline;
     int chunk_w, chunk_h;
+
+    std::vector<uchar> data;
+
+    ~DiffData(){
+        for (auto& p : pipeline) {
+            delete p;
+        }
+    }
+
+    void zip(const std::vector<uchar>& data){
+        std::vector<uchar> data_ = data;
+        for (auto& pipe : pipeline) {
+            data_ = pipe->forward(data_,chunk_w, chunk_h);
+        }
+        this->data = data_;
+    }
+
+    std::vector<uchar> unzip(){
+        std::vector<uchar> data_ = data;
+        for (int i = pipeline.size() - 1; i >= 0; --i) {
+            data_ = pipeline[i]->back(data_,chunk_w, chunk_h);
+        }
+        return data_;
+    }
 };
 
 class Canvas : public QWidget

@@ -51,8 +51,15 @@ void Canvas::doCheckpoint(){
 }
 
 void Canvas::saveDiferencies(){
-    std::vector<uchar> data_raw;
     DiffData* data = new DiffData();
+
+    data->pipeline = {
+        new DataGroupechanels(),
+        //new Sequence<uint32_t>(),
+        new Sequence<uchar>(),
+        new Huffman<uchar>(),
+        };
+
     data->chunk_w = ch_w;
     data->chunk_h = ch_h;
 
@@ -60,7 +67,6 @@ void Canvas::saveDiferencies(){
     for(int i = 0; i < changedChunks.size(); ++i) {
         count += changedChunks[i].count(true);
     }
-    data_raw.resize(count * 4 * ch_w * ch_h);
     data->chunks_ID.resize(count);
     int index = 0;
     for(int i = 0; i < changedChunks.size(); ++i) {
@@ -69,26 +75,15 @@ void Canvas::saveDiferencies(){
                 int chunkID = i * changedChunks[0].size() + j;
                 data->chunks_ID[index] = chunkID;
 
-                QRect area(i * ch_w, j * ch_h,ch_w,ch_h);
-
-                int dataIndex = index * ch_w * ch_h * 4;
-
-                for(int y = area.top(); y <= area.bottom(); ++y) {
-
-                    const uchar* line1 = image.constScanLine(y);
-                    const uchar* line2 = image_checkpoint.constScanLine(y);
-
-                    int start = area.left() * 4;
-                    int end   = area.right() * 4 + 3;
-
-                    for(int x = start; x <= end; ++x) {
-                        data_raw[dataIndex++] = line1[x] ^ line2[x];
-                    }
-                }
                 ++index;
             }
         }
     }
+
+    DataProcessXOR processData;
+
+    std::vector<uchar> data_raw = processData.process(image, image_checkpoint, data->chunks_ID, data->chunk_w, data->chunk_h);
+
     zip(data, data_raw);
 
     addCheckpoint(data);
@@ -116,6 +111,10 @@ void Canvas::addCheckpoint(DiffData* data) {
     for(size_t i = 0; i < size; i++) {
         delete actionBuffer.pop_back();
     }
+    bool isFull = actionBuffer.isFull();
+    if(isFull) {
+        delete actionBuffer.pop_back();
+    }
     actionBuffer.add(data);
     undoIndex = actionBuffer.size();
 }
@@ -123,36 +122,11 @@ void Canvas::applyChanges(DiffData* data) {
 
 
     std::vector<uchar> data_raw = unZip(data);
-    size_t image_h = image.height();
-    size_t ch_h_count = image_h / data->chunk_h;
 
-    if(image_h % data->chunk_h != 0){
-        ++ch_h_count;
-    }
+    DataProcessXOR processData;
 
-    for (int i = 0; i < data->chunks_ID.size(); ++i) {
-        int index = data->chunks_ID[i];
-        int y = index % ch_h_count;
-        int x = (index - y ) / ch_h_count;
+    processData.apply(image, data->chunks_ID, data->chunk_w, data->chunk_h, data_raw);
 
-        QRect area(x * data->chunk_w,y * data->chunk_h,data->chunk_w,data->chunk_h);
-
-
-        int dataIndex = i * data->chunk_w * data->chunk_h * 4;
-        for(int y = area.top(); y <= area.bottom(); ++y) {
-
-            uchar* line = image.scanLine(y);
-
-            int start = area.left() * 4;
-            int end   = area.right() * 4 + 3;
-
-            for(int x = start;  x<= end; ++x) {
-                line[x] ^= data_raw[dataIndex++];
-            }
-        }
-
-
-    }
     doCheckpoint();
 
     update();
@@ -220,13 +194,14 @@ void Canvas::activateChunks(const QPoint& from, const QPoint& to){
 
 void Canvas::zip(DiffData* diffData, const std::vector<uchar>& data){
 
-    diffData->hoff1.zip(data);
-    qDebug() << "zip" << data.size() << diffData->hoff1.size() << ((1.0 *data.size()) /diffData->hoff1.size());
+    diffData->zip(data);
+
+    qDebug() << "zip" << data.size() << diffData->data.size() << ((1.0 *data.size()) /diffData->data.size());
 }
 std::vector<uchar> Canvas::unZip(DiffData* diffData){
     std::vector<uchar> data;
 
-    data = diffData->hoff1.unzip();
+    data = diffData->unzip();
 
     return data;
 }
