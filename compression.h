@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "DataView.h"
 #include "datapipeline.h"
+#include <QByteArray>
 
 
 class Compression :  public DataPipeLine
@@ -93,4 +94,25 @@ private:
 
 };
 
+class QTCompresion : public Compression {
+public:
+
+    virtual std::vector<uchar> zip(const  std::vector<uchar>& data) {
+        QByteArray compressed = qCompress(data.data(), data.size(), 9);
+
+        return std::vector<uchar>(
+            compressed.begin(),
+            compressed.end()
+            );
+    };
+    virtual std::vector<uchar> unzip(const  std::vector<uchar>& data) {
+        QByteArray uncompressed = qUncompress(data.data(), data.size());
+
+        return std::vector<uchar>(
+            uncompressed.begin(),
+            uncompressed.end()
+            );
+
+    };
+};
 

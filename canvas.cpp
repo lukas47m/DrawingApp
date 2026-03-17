@@ -59,6 +59,7 @@ void Canvas::saveDiferencies(){
         //new Sequence<uint32_t>(),
         new Sequence<uchar>(),
         new Huffman<uchar>(),
+        //new QTCompresion()
         };
 
     data->chunk_w = ch_w;
@@ -114,7 +115,7 @@ void Canvas::addCheckpoint(DiffData* data) {
     }
     bool isFull = actionBuffer.isFull();
     if(isFull) {
-        delete actionBuffer.pop_back();
+        delete actionBuffer.pop_front();
     }
     actionBuffer.add(data);
     undoIndex = actionBuffer.size();

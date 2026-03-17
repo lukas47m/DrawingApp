@@ -27,6 +27,12 @@ public:
         tail = (tail - 1) % MAX_SIZE;
         return value;
     }
+    T pop_front(){
+        T value = buffer[head];
+        head = (head + 1) % MAX_SIZE;
+        return value;
+    }
+
     T get(size_t index) const {
         return buffer[(head + index) % MAX_SIZE];
     }

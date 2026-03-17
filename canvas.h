@@ -78,7 +78,7 @@ private:
 
     std::vector<QBitArray> changedChunks;
 
-    CircularBuffer<DiffData*,50> actionBuffer;
+    CircularBuffer<DiffData*,256> actionBuffer;
     size_t undoIndex = 0;
     void addCheckpoint(DiffData* data);
     void applyChanges(DiffData* data);
