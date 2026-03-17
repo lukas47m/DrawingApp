@@ -54,6 +54,7 @@ void Canvas::saveDiferencies(){
     DiffData* data = new DiffData();
 
     data->pipeline = {
+        new PaethFilter(),
         new DataGroupechanels(),
         //new Sequence<uint32_t>(),
         new Sequence<uchar>(),

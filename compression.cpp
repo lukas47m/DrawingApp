@@ -2,34 +2,6 @@
 #include <queue>
 #include <QDebug>
 
-std::vector<uchar> DataGroupechanels::forward(const std::vector<uchar>& data, int chunk_w, int chunk_h){
-    std::vector<uchar> data_(data.size());
-    size_t offset_size = data.size() >>2;
-
-    for (int i = 0; i < data.size(); i += 4) {
-        int i_ = i >>2;
-        data_[i_] = data[i];
-        data_[i_ + offset_size] = data[i + 1];
-        data_[i_ + offset_size * 2] = data[i + 2];
-        data_[i_ + offset_size * 3] = data[i + 3];
-    }
-
-    return data_;
-}
-std::vector<uchar> DataGroupechanels::back(const std::vector<uchar>& data, int chunk_w, int chunk_h) {
-    std::vector<uchar> data_(data.size());
-    size_t offset_size = data.size() >>2;
-
-    for (int i = 0; i < data.size(); i += 4) {
-        int i_ = i >>2;
-        data_[i] = data[i_];
-        data_[i + 1] = data[i_ + offset_size];
-        data_[i + 2] = data[i_ + offset_size * 2];
-        data_[i + 3] = data[i_ + offset_size * 3];
-    }
-
-    return data_;
-}
 
 template <class T>
 std::vector<uchar> Huffman<T>::zip(const std::vector<uchar>& data){

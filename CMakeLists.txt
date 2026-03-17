@@ -30,6 +30,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         compression.h compression.cpp
         resources/brushes/brush2.png
         dataprocess.h dataprocess.cpp
+        DataView.h
+        datapipeline.h datapipeline.cpp
 
 
     )
