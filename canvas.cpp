@@ -53,14 +53,21 @@ void Canvas::doCheckpoint(){
 void Canvas::saveDiferencies(){
     DiffData* data = new DiffData();
 
-    data->pipeline = {
+    data->strategy = {DiffData::Strategy({
         new PaethFilter(),
         new DataGroupechanels(),
         //new Sequence<uint32_t>(),
         new Sequence<uchar>(),
         new Huffman<uchar>(),
         //new QTCompresion()
-        };
+    }),DiffData::Strategy({
+        new Huffman<uchar>(),
+    }),DiffData::Strategy({
+        new DataGroupechanels(),
+        new Sequence<uchar>(),
+    }),DiffData::Strategy({
+        new QTCompresion()
+    })};
 
     data->chunk_w = ch_w;
     data->chunk_h = ch_h;
@@ -197,13 +204,16 @@ void Canvas::activateChunks(const QPoint& from, const QPoint& to){
 void Canvas::zip(DiffData* diffData, const std::vector<uchar>& data){
 
     diffData->zip(data);
+    diffData->originalSize = data.size();
 
-    qDebug() << "zip" << data.size() << diffData->data.size() << ((1.0 *data.size()) /diffData->data.size());
+    diffData->printStat();
 }
 std::vector<uchar> Canvas::unZip(DiffData* diffData){
     std::vector<uchar> data;
 
     data = diffData->unzip();
+
+    diffData->printStat();
 
     return data;
 }
