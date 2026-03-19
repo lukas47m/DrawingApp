@@ -107,7 +107,9 @@ std::vector<uchar> Huffman<T>::unzip(const std::vector<uchar>& data_){
 
     data.resize(root->freq * sizeof(T));
 
-    DataView<const uchar> data_raw(&data_[8+ freqTableSize[0] * sizeof(FreqData)],root->freq * sizeof(T));
+    size_t data_index = 8+ freqTableSize[0] * sizeof(FreqData);
+
+    DataView<const uchar> data_raw(&data_[data_index],data_.size()-data_index);
 
     DataView<T> data_view(&data[0], root->freq);
 
@@ -221,7 +223,7 @@ void Huffman<T>::decompress(
 
                 output[index++] = current->data;
 
-                if(index == root->freq * sizeof(T)){
+                if(index == root->freq){
                     return;
                 }
 
