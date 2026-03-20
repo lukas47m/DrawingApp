@@ -335,6 +335,117 @@ std::vector<uchar> Sequence<T>::unzip(const  std::vector<uchar>& data_){
     return data;
 }
 
+
+std::vector<uchar> Sequence2::zip(const  std::vector<uchar>& data){
+    std::vector<uchar> data_;
+    std::vector<bool> pom;
+
+
+    data_.push_back(0);
+    data_.push_back(0);
+    data_.push_back(0);
+    data_.push_back(0);
+
+    pom.push_back(false);
+    data_.push_back(data[0]);
+    for (int i = 1; i < data.size(); ++i) {
+
+        uchar best_result = 0;
+        uchar best_offset = 0;
+
+
+        for (int j = 0; j < 256; ++j) {
+            if(i-j==0)break;
+            for (int c = 0; c < 256; ++c) {
+                if(i+c==data.size())break;
+                if(data[i - j - 1 + c] != data[i + c]){
+                    break;
+                }
+
+                if(c > best_result){
+                    best_result = c;
+                    best_offset = j;
+                }
+            }
+        }
+
+        if(best_result > 1){
+            pom.push_back(true);
+            data_.push_back(best_offset);
+            data_.push_back(best_result);
+
+            i += best_result;
+        } else{
+            pom.push_back(false);
+            data_.push_back(data[i]);
+        }
+    }
+
+    DataView<uint32_t> pomSizeV(&data_[0],1);
+    uint32_t pomSize = (pom.size() + 7) >>3;
+    pomSizeV[0] = pomSize;
+
+    data_.reserve(data_.size() + pomSize);
+
+    for (int i = 0; i < pomSize; ++i) {
+        uchar record = 0;
+        for (int j = 0; j < 8; ++j) {
+            if ((i<<3)+j == pom.size()){
+                record <<= (8-j);
+                break;
+            }
+
+            record <<= 1;
+
+            if (pom[(i<<3)+j]){
+                record |= 1;
+            }
+        }
+        data_.push_back(record);
+    }
+
+    return data_;
+
+}
+
+std::vector<uchar> Sequence2::unzip(const  std::vector<uchar>& data_){
+    std::vector<uchar> data;
+
+
+    DataView<const uint32_t> pomSizeV(&data_[0],1);
+    uint32_t pomSize = pomSizeV[0];
+
+    uint32_t dataSize = data_.size()-pomSize - 4;
+
+    DataView<const uchar> pomView(&data_[data_.size()-pomSize],pomSize);
+
+    DataView<const uchar> dataView(&data_[4],dataSize);
+
+    int pomIndex = 0;
+
+    for (int i = 0; i < dataSize; ++i) {
+
+        bool tag =pomView[pomIndex>>3] & (128>>(pomIndex&7));
+
+        if (tag){
+            uchar offset = dataView[i];
+            uchar size = dataView[i +1];
+            int start = data.size() - 1 - offset;
+
+            for (int j = 0; j <= size; ++j) {
+                data.push_back(data[start + j]);
+            }
+            ++i;
+        }else{
+            data.push_back(dataView[i]);
+        }
+        ++pomIndex;
+    }
+
+
+    return data;
+}
+
 template class Huffman<uchar>;
 template class Huffman<uint32_t>;
 

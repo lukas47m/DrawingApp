@@ -94,6 +94,17 @@ private:
 
 };
 
+
+class Sequence2 : public Compression {
+public:
+
+    virtual std::vector<uchar> zip(const  std::vector<uchar>&) override;
+    virtual std::vector<uchar> unzip(const  std::vector<uchar>&) override;
+
+private:
+
+};
+
 class QTCompresion : public Compression {
 public:
 
